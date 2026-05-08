@@ -1,37 +1,38 @@
-# Conway Automaton Zero-Cost Starter
+# Automaton Zero-Cost Starter
 
-> 无需 SIWE、无需 API Key、无需 USDC —— 让 Conway Automaton 零成本跑起来。
+> Universal Hermes Skill for running Conway Automaton at zero cost. No SIWE, No API Key, No USDC.
 > 
-> No SIWE, No API Key, No USDC — run Conway Automaton at zero cost.
+> 通用 Hermes Skill —— 让 Conway Automaton 零成本跑起来。无需 SIWE、无需 API Key、无需 USDC。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Skill: Hermes](https://img.shields.io/badge/Skill-Hermes-blue.svg)](#as-hermes-skill)
 
 ---
 
-## 什么是这个仓库？
+## What is this?
 
-Conway Automaton 是一个主权 AI Agent Runtime，但它的官方启动方式需要：
-- SIWE 登录（Sign-In With Ethereum）
+Conway Automaton is a sovereign AI Agent Runtime, but its official startup requires:
+- SIWE login (Sign-In With Ethereum)
 - Conway API Key
 - $5 USDC bootstrap
 
-**这个仓库让你跳过所有门槛**，直接用本地模式 + 远程 Ollama 零成本运行 Automaton。
+**This repo lets you skip ALL barriers** and run Automaton in local mode with remote Ollama — completely free.
 
-### 核心能力
+### Zero-Cost Capabilities
 
-| 能力 | 零成本模式 | 节省 |
-|------|-----------|------|
-| LLM 推理 | Ollama 远程端点 | ~$0.03/次 |
-| 沙箱执行 | 本地 shell | $5+/月 |
-| 文件操作 | 本地磁盘 | $0 |
-| Git 操作 | 本地 git | $0 |
-| 心跳监控 | 本地 cron | $0 |
+| Capability | Zero-Cost Mode | Savings |
+|-----------|---------------|---------|
+| LLM Inference | Ollama remote endpoint | ~$0.03/call |
+| Sandbox Execution | Local shell | $5+/month |
+| File Operations | Local disk | $0 |
+| Git Operations | Local git | $0 |
+| Heartbeat | Local cron | $0 |
 
 ---
 
-## 快速开始（3 步）
+## Quick Start (3 Steps)
 
-### Step 1: 克隆 Automaton
+### Step 1: Clone Automaton
 
 ```bash
 git clone https://github.com/Conway-Research/automaton.git
@@ -39,44 +40,44 @@ cd automaton
 pnpm install
 ```
 
-### Step 2: 应用 Patch
+### Step 2: Apply Patch
 
 ```bash
-# 使用本仓库的 patch 脚本
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/automaton-zero-cost-guide/main/patch.sh | bash
+# Use this repo's patch script
+curl -fsSL https://raw.githubusercontent.com/frechd/automaton-zero-cost-guide/main/patch.sh | bash
 ```
 
-或手动 patch：`patch -p1 < zero-cost.patch`
+Or manually: `patch -p1 < patches/0001-zero-cost-skip-api.patch`
 
-### Step 3: 配置 + 运行
+### Step 3: Configure & Run
 
 ```bash
-# 生成零成本配置
+# Generate zero-cost config
 node scripts/setup-zero-cost.js
 
-# 运行
+# Run
 node dist/index.js --run
 ```
 
 ---
 
-## 需要 Patch 什么？
+## What Gets Patched?
 
-| 文件 | 修改 | 原因 |
-|------|------|------|
-| `src/index.ts` | 跳过 API Key 检查 | 本地模式不需要 |
-| `src/index.ts` | 跳过 Conway 注册 | 不需要 SIWE |
-| `src/index.ts` | 跳过 bootstrap topup | 不需要 credits |
-| `src/conway/client.ts` | 本地模式跳过 API 调用 | 避免报错 |
-| `src/inference/provider-registry.ts` | 添加 Ollama Provider | 零成本推理 |
+| File | Change | Reason |
+|------|--------|--------|
+| `src/index.ts` | Skip API Key check | Not needed for local mode |
+| `src/index.ts` | Skip Conway registration | No SIWE needed |
+| `src/index.ts` | Skip bootstrap topup | No credits needed |
+| `src/conway/client.ts` | Skip API calls in local mode | Avoid errors |
+| `src/inference/provider-registry.ts` | Add Ollama Provider | Zero-cost inference |
 
-**详细 patch 说明**：见 `docs/PATCH_GUIDE.md`
+**Detailed patch guide**: see `docs/PATCH_GUIDE.md`
 
 ---
 
-## 配置说明
+## Configuration
 
-### `automaton.json`（零成本版）
+### `automaton.json` (Zero-Cost Edition)
 
 ```json
 {
@@ -103,65 +104,122 @@ node dist/index.js --run
 }
 ```
 
-### `providers.json`（强制 Ollama）
-
-见 `config/providers.json.example`
-
 ---
 
-## 零成本模式限制
+## Limitations in Zero-Cost Mode
 
-| 功能 | 可用 | 替代方案 |
-|------|------|---------|
-| `exec` | ✅ | 本地 shell |
-| `read_file`/`write_file` | ✅ | 本地磁盘 |
-| `git_commit`/`git_push` | ✅ | 本地 git |
-| `web_fetch` | ✅ | 直连互联网 |
-| `ollama_chat` | ✅ | Ollama 远程端点 |
-| `update_soul` | ✅ | 自省 |
-| `expose_port` | ⚠️ | 仅 localhost（无公网）|
-| `register_domain` | ❌ | 不适用 |
+| Feature | Available | Alternative |
+|---------|-----------|-------------|
+| `exec` | ✅ | Local shell |
+| `read_file`/`write_file` | ✅ | Local disk |
+| `git_commit`/`git_push` | ✅ | Local git |
+| `web_fetch` | ✅ | Direct internet |
+| `ollama_chat` | ✅ | Ollama remote endpoint |
+| `update_soul` | ✅ | Self-reflection |
+| `expose_port` | ⚠️ | Localhost only (no public internet) |
+| `register_domain` | ❌ | N/A |
 | `spawn_child` | ❌ | `maxChildren: 0` |
-| `x402_fetch` | ❌ | 零 credits |
-| `topup_credits` | ❌ | 零成本模式 |
+| `x402_fetch` | ❌ | Zero credits |
+| `topup_credits` | ❌ | Zero-cost mode |
 
 ---
 
-## 如何赚钱？（从 $0 开始）
+## How to Earn? (Starting from $0)
 
-### 阶段 1：开源贡献者（$0 启动）
+### Stage 1: Open Source Contributor ($0)
 
-1. 用零成本 Automaton 写代码
-2. Push 到 GitHub
-3. 积累 star 和 reputation
-4. 开启 GitHub Sponsors
+1. Write code with zero-cost Automaton
+2. Push to GitHub
+3. Gain stars and reputation
+4. Enable GitHub Sponsors
 
-### 阶段 2：服务提供者（$5+ 启动）
+### Stage 2: Service Provider ($5+)
 
-1. 充值 $5 USDC → 进入 Conway Cloud 沙箱
-2. `expose_port` 暴露服务
-3. 用 x402 收取 USDC
-4. 服务示例：API、数据抓取、自动化任务
+1. Top up $5 USDC → Enter Conway Cloud sandbox
+2. `expose_port` to expose services
+3. Earn USDC via x402
+4. Service examples: API, data scraping, automation
 
-### 阶段 3：自主经济（$50+）
+### Stage 3: Autonomous Economy ($50+)
 
-1. 部署多个 agent
-2. spawn 子代理做专项任务
-3. 构建自动化收入流
-
----
-
-## 文档
-
-- `docs/PATCH_GUIDE.md` — 详细 Patch 说明
-- `docs/ECONOMY_ANALYSIS.md` — 经济模型分析
-- `docs/ZERO_COST_SETUP.md` — 零成本配置指南
+1. Deploy multiple agents
+2. Spawn child agents for specialized tasks
+3. Build automated revenue streams
 
 ---
 
-## 贡献
+## As Hermes Skill
 
-欢迎 PR！让这个零成本启动方案越来越完善。
+This repository is also a **Hermes Skill** that can be loaded by any Hermes Agent.
+
+### Installation
+
+```bash
+git clone https://github.com/frechd/automaton-zero-cost-guide.git \
+  ~/.hermes/profiles/YOUR_PROFILE/skills/automaton-zero-cost-guide
+```
+
+### Triggers
+
+The skill auto-loads when you say:
+- "零成本启动 Automaton" / "zero cost automaton"
+- "Automaton 本地模式" / "automaton local mode"
+- "跳过 SIWE" / "skip SIWE"
+- "无需 USDC 运行 agent" / "run agent without USDC"
+- "automaton setup"
+
+### Skill Capabilities
+
+1. **Patch Scripts**: One-click modification of Automaton source to skip auth
+2. **Config Templates**: Generate `automaton.json` + `providers.json`
+3. **Economy Analysis**: $0 → $5 → $50 earning roadmap
+4. **Limitation Matrix**: What's available/unavailable in local mode
+
+---
+
+## File Structure
+
+```
+.
+├── SKILL.md                          # Hermes Skill definition
+├── README.md                         # Project intro (this file)
+├── LICENSE                           # MIT License
+├── .gitignore
+├── patches/
+│   └── 0001-zero-cost-skip-api.patch # Core patch file
+├── scripts/
+│   ├── setup-zero-cost.js            # Config generator
+│   └── setup-zero-cost.sh            # Bash version
+├── docs/
+│   ├── PATCH_GUIDE.md                # Detailed patch docs
+│   ├── ECONOMY_ANALYSIS.md           # Revenue model analysis
+│   └── ZERO_COST_SETUP.md            # Setup guide
+└── config/
+    └── providers.json.example        # Ollama provider config
+```
+
+---
+
+## Docs
+
+- `docs/PATCH_GUIDE.md` — Detailed patch explanation
+- `docs/ECONOMY_ANALYSIS.md` — Revenue model deep-dive
+- `docs/ZERO_COST_SETUP.md` — Zero-cost setup guide
+- `SKILL.md` — Hermes Skill definition (for agents)
+
+---
+
+## Contributing
+
+PRs welcome! Help make zero-cost startup smoother.
+
+### Wishlist
+
+- [ ] More provider support (LM Studio, vLLM, local Ollama)
+- [ ] Docker one-liner startup
+- [ ] Better sandbox isolation
+- [ ] Auto-detect Automaton version and adapt patch
+- [ ] Windows support
 
 ---
 
