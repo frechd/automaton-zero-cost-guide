@@ -1,0 +1,57 @@
+diff --git a/src/index.ts b/src/index.ts
+index abc123..def456 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -196,7 +196,8 @@ async function run(): Promise<void> {
+   // Load wallet (chain-aware)
+   const { account, chainIdentity, chainType: walletChainType } = await getWallet();
+   const resolvedChainType = config.chainType || walletChainType || "evm";
+-  const apiKey = config.conwayApiKey || loadApiKeyFromConfig();
++  const apiKey = config.conwayApiKey || loadApiKeyFromConfig() || "";
++  const isLocalMode = !config.sandboxId || !apiKey;
+-  if (!apiKey) {
++  if (!apiKey && config.sandboxId) {
+     logger.error("No API key found. Run: automaton --provision");
+     process.exit(1);
+   }
+@@ -249,7 +250,8 @@ async function run(): Promise<void> {
+   // Register automaton identity (one-time, immutable)
+   const registrationState = db.getIdentity("conwayRegistrationStatus");
+-  if (registrationState !== "registered") {
++  if (config.sandboxId && registrationState !== "registered") {
+     try {
+       const genesisPromptHash = config.genesisPrompt
+         ? keccak256(toHex(config.genesisPrompt))
+@@ -350,6 +352,7 @@ async function run(): Promise<void> {
+   // ─── Bootstrap topup ────────────────────────────────────
+-    const topupResult = await bootstrapTopup({
++    if (config.sandboxId) {
++      const topupResult = await bootstrapTopup({
+         apiUrl: config.conwayApiUrl,
+         account,
+         creditsCents,
+@@ -357,6 +360,7 @@ async function run(): Promise<void> {
+       });
++    }
+
+   // ─── Heartbeat ──────────────────────────────────────────
+-  const heartbeat = createHeartbeatDaemon({
++  const heartbeat = isLocalMode ? null : createHeartbeatDaemon({
+     apiUrl: config.conwayApiUrl,
+     apiKey,
+     account,
+diff --git a/src/conway/client.ts b/src/conway/client.ts
+index abc123..def456 100644
+--- a/src/conway/client.ts
++++ b/src/conway/client.ts
+@@ -44,6 +44,12 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
+     payload?: any,
+     options?: any,
+   ) {
++    if (isLocal) {
++      logger.debug(`[local] Skipping API call: ${endpoint}`);
++      return { data: {} };
++    }
++    
+     const MAX_BODY_LEN = 5_000_000;
+     const finalPayload = payload ?? {};
