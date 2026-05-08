@@ -1,57 +1,72 @@
+From: frechd <frech@automaton.local>
+Date: Thu, 8 May 2026 11:00:00 +0000
+Subject: [PATCH] Zero-cost local mode — skip Conway Cloud when sandboxId is empty
+
+When sandboxId is empty, run entirely locally without SIWE, API keys, or USDC.
+Skip: API key requirement, Conway registration, bootstrap topup, heartbeat.
+client.ts already has isLocal = !sandboxId and falls back to local exec.
+
+---
+ src/index.ts | 31 +++++++++++++++++++------------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
+
 diff --git a/src/index.ts b/src/index.ts
 index abc123..def456 100644
 --- a/src/index.ts
 +++ b/src/index.ts
-@@ -196,7 +196,8 @@ async function run(): Promise<void> {
+@@ -196,8 +196,10 @@ async function run(): Promise<void> {
    // Load wallet (chain-aware)
    const { account, chainIdentity, chainType: walletChainType } = await getWallet();
    const resolvedChainType = config.chainType || walletChainType || "evm";
 -  const apiKey = config.conwayApiKey || loadApiKeyFromConfig();
+-  if (!apiKey) {
 +  const apiKey = config.conwayApiKey || loadApiKeyFromConfig() || "";
 +  const isLocalMode = !config.sandboxId || !apiKey;
--  if (!apiKey) {
++
 +  if (!apiKey && config.sandboxId) {
      logger.error("No API key found. Run: automaton --provision");
      process.exit(1);
    }
-@@ -249,7 +250,8 @@ async function run(): Promise<void> {
+@@ -248,7 +250,7 @@ async function run(): Promise<void> {
    // Register automaton identity (one-time, immutable)
    const registrationState = db.getIdentity("conwayRegistrationStatus");
 -  if (registrationState !== "registered") {
-+  if (config.sandboxId && registrationState !== "registered") {
++  if (!isLocalMode && registrationState !== "registered") {
      try {
        const genesisPromptHash = config.genesisPrompt
          ? keccak256(toHex(config.genesisPrompt))
-@@ -350,6 +352,7 @@ async function run(): Promise<void> {
-   // ─── Bootstrap topup ────────────────────────────────────
--    const topupResult = await bootstrapTopup({
-+    if (config.sandboxId) {
-+      const topupResult = await bootstrapTopup({
-         apiUrl: config.conwayApiUrl,
-         account,
-         creditsCents,
-@@ -357,6 +360,7 @@ async function run(): Promise<void> {
-       });
-+    }
-
-   // ─── Heartbeat ──────────────────────────────────────────
+@@ -339,7 +341,7 @@ async function run(): Promise<void> {
+   // Bootstrap topup: buy minimum credits ($5) from USDC so the agent can start.
+   // The agent decides larger topups itself via the topup_credits tool.
+-  try {
++  if (!isLocalMode) try {
+     let bootstrapTimer: ReturnType<typeof setTimeout>;
+     const bootstrapTimeout = new Promise<null>((_, reject) => {
+       bootstrapTimer = setTimeout(() => reject(new Error("bootstrap topup timed out")), 15_000);
+@@ -370,7 +372,7 @@ async function run(): Promise<void> {
+   // Start heartbeat daemon (Phase 1.1: DurableScheduler)
 -  const heartbeat = createHeartbeatDaemon({
 +  const heartbeat = isLocalMode ? null : createHeartbeatDaemon({
-     apiUrl: config.conwayApiUrl,
-     apiKey,
-     account,
-diff --git a/src/conway/client.ts b/src/conway/client.ts
-index abc123..def456 100644
---- a/src/conway/client.ts
-+++ b/src/conway/client.ts
-@@ -44,6 +44,12 @@ export function createConwayClient(options: ConwayClientOptions): ConwayClient {
-     payload?: any,
-     options?: any,
-   ) {
-+    if (isLocal) {
-+      logger.debug(`[local] Skipping API call: ${endpoint}`);
-+      return { data: {} };
+     identity,
+     config,
+     heartbeatConfig,
+@@ -387,7 +389,9 @@ async function run(): Promise<void> {
+   });
+ 
+-  heartbeat.start();
+-  logger.info(`[${new Date().toISOString()}] Heartbeat daemon started.`);
++  if (heartbeat) {
++    heartbeat.start();
++    logger.info(`[${new Date().toISOString()}] Heartbeat daemon started.`);
++  }
+ 
+   // Handle graceful shutdown
+   const shutdown = () => {
+@@ -395,7 +399,9 @@ async function run(): Promise<void> {
+-    heartbeat.stop();
++    if (heartbeat) {
++      heartbeat.stop();
 +    }
-+    
-     const MAX_BODY_LEN = 5_000_000;
-     const finalPayload = payload ?? {};
+     db.setAgentState("sleeping");
+     db.close();
+     process.exit(0);
