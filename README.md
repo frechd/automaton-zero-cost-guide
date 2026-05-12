@@ -19,7 +19,8 @@
 | **Source Code Analysis** | ✅ Complete | 67,096 lines across 186 files |
 | **Architecture Map** | ✅ Complete | 22 modules, 34 tools fully documented |
 | **Economic Model** | ✅ Verified | x402 client-only, no built-in revenue |
-| **Patch Compilation** | ✅ Passes | `pnpm build` succeeds with 4 line changes |
+| **Patch Compilation** | ✅ Passes | `pnpm build` succeeds with verified patch |
+| **Patch Verification** | ✅ Verified | Patch applies cleanly to v0.2.1 source |
 | **Patch Runtime** | ⚠️ Partial | Compiles but agent loop not fully tested |
 | **Setup Wizard Skip** | ❌ Not Done | Still triggers interactive setup |
 | **End-to-End Run** | ❌ Not Verified | `node dist/index.js --run` needs more testing |
